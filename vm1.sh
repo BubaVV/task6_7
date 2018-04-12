@@ -1,12 +1,14 @@
 #!/bin/bash
-IS_NTP_INSTALLED=$(dpkg -l nginx | grep ii |wc -l)
-if [ $IS_NTP_INSTALLED = 0 ]
+IS_NGINX_INSTALLED=$(dpkg -l nginx | grep ii |wc -l)
+if [ $IS_NGINX_INSTALLED = 0 ]
 then
 echo "Updating apt"
 apt update
-echo "Installing ntp"
+echo "Installing nginx"
 apt install nginx -y -q
 fi
+
+mkdir -p /etc/ssl/certs
 
 openssl genrsa -out /etc/ssl/certs/root-ca.key 4096
 openssl req -x509 -new -nodes -key /etc/ssl/certs/root-ca.key -sha256 -days 365 -out /etc/ssl/certs/root-ca.crt -subj "/C=UA/ST=Kharkov/L=Kharkov/O=Mirantis/OU=dev_ops/CN=root_cert/"

@@ -25,5 +25,8 @@ openssl x509 -req\
 cat /etc/ssl/certs/root-ca.crt /etc/ssl/certs/web.crt> \
     /etc/ssl/certs/web-ca-chain.pem
 
-
+modprobe 8021q
+vconfig add enp0s4 278
+ip addr add 10.0.0.1/24 dev enp0s4:278
+ip link set up enp0s:278
 

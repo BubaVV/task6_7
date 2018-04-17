@@ -25,6 +25,11 @@ openssl x509 -req\
 cat /etc/ssl/certs/root-ca.crt /etc/ssl/certs/web.crt> \
     /etc/ssl/certs/web-ca-chain.pem
 
+
+source vm1.config
+export $(cut -d= -f1 vm1.config)
+envsubst < default '$APACHE_VLAN_IP', '$NGINX_PORT' > /etc/nginx/sites-enabled/default
+
 modprobe 8021q
 vconfig add enp0s4 278
 ip addr add 10.0.0.1/24 dev enp0s4:278

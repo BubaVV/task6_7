@@ -15,7 +15,7 @@
 #
 
 upstream vm2{
-       server 10.0.0.2;
+       server ${APACHE_VLAN_IP};
 }
 server {
 	#listen 80 default_server;
@@ -23,7 +23,7 @@ server {
 
 	# SSL configuration
 	#
-         listen 443 ssl default_server;
+         listen ${NGINX_PORT} ssl default_server;
          server_name vm1;
          ssl_certificate /etc/ssl/certs/web-ca-chain.pem;
          ssl_certificate_key /etc/ssl/certs/root-ca.key;

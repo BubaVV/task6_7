@@ -8,8 +8,6 @@ echo "Installing apache2"
 apt install apache2 -y -q
 fi
 
-cp -f /etc/apache2/sites-enabled/000-default.conf 000-default.conf
-
 source vm2.config
 export $(cut -d= -f1 vm2.config)
 envsubst < 000-default.conf '$APACHE_VLAN_IP' > /etc/apache2/sites-enabled/000-default.conf
@@ -20,6 +18,6 @@ ip addr add $APACHE_VLAN_IP dev $INTERNAL_IF:$VLAN
 ip link set up $INTERNAL_IF:$VLAN
 ip route add default via $GW_IP
 
-iptables -t nat -A POSTROUTING -o $EXTERNAL_IF -j MASQUERADE
+
 
 

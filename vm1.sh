@@ -1,5 +1,19 @@
 #!/bin/bash
 
+source vm1.config
+export $(cut -d= -f1 vm1.config)
+envsubst < default '$APACHE_VLAN_IP', '$NGINX_PORT' > /etc/nginx/sites-enabled/default
+
+modprobe 8021q
+vconfig add $INTERNAL_IF $VLAN
+ip addr add $VLAN_IP dev $INTERNAL_IF:$VLAN
+ip link set up $INTERNAL_IF:$VLAN
+
+sysctl net.ipv4.ip_forward=1
+
+echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+
+iptables -t nat -A POSTROUTING -o $EXTERNAL_IF -j MASQUERADE
 ip addr add $EXT_IP dev $EXTERNAL_IF
 ip link set up $EXTERNAL_IF
 ip route add default via $GW_IP
@@ -31,16 +45,4 @@ cat /etc/ssl/certs/root-ca.crt /etc/ssl/certs/web.crt> \
     /etc/ssl/certs/web-ca-chain.pem
 
 
-source vm1.config
-export $(cut -d= -f1 vm1.config)
-envsubst < default '$APACHE_VLAN_IP', '$NGINX_PORT' > /etc/nginx/sites-enabled/default
-
-modprobe 8021q
-vconfig add $INTERNAL_IF $VLAN
-ip addr add $VLAN_IP dev $INTERNAL_IF:$VLAN
-ip link set up $INTERNAL_IF:$VLAN
-
-sysctl net.ipv4.ip_forward=1
-
-echo "nameserver 8.8.8.8" >> /etc/resolv.conf
 

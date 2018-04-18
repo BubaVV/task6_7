@@ -1,4 +1,9 @@
 #!/bin/bash
+
+ip addr add $EXT_IP dev $EXTERNAL_IF
+ip link set up $EXTERNAL_IF
+ip route add default via $GW_IP
+
 IS_NGINX_INSTALLED=$(dpkg -l nginx | grep ii |wc -l)
 if [ $IS_NGINX_INSTALLED = 0 ]
 then
@@ -31,7 +36,11 @@ export $(cut -d= -f1 vm1.config)
 envsubst < default '$APACHE_VLAN_IP', '$NGINX_PORT' > /etc/nginx/sites-enabled/default
 
 modprobe 8021q
-vconfig add enp0s4 278
-ip addr add 10.0.0.1/24 dev enp0s4:278
-ip link set up enp0s:278
+vconfig add $INTERNAL_IF $VLAN
+ip addr add $VLAN_IP dev $INTERNAL_IF:$VLAN
+ip link set up $INTERNAL_IF:$VLAN
+
+sysctl net.ipv4.ip_forward=1
+
+echo "nameserver 8.8.8.8" >> /etc/resolv.conf
 

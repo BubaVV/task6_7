@@ -15,8 +15,11 @@ export $(cut -d= -f1 vm2.config)
 envsubst < 000-default.conf '$APACHE_VLAN_IP' > /etc/apache2/sites-enabled/000-default.conf
 
 modprobe 8021q
-vconfig add enp0s4 278
-ip addr add 10.0.0.2/24 dev enp0s4:278
-ip link set up enp0s:278
+vconfig add $INTERNAL_IF $VLAN
+ip addr add $APACHE_VLAN_IP dev $INTERNAL_IF:$VLAN
+ip link set up $INTERNAL_IF:$VLAN
+ip route add default via $GW_IP
+
+iptables -t nat -A POSTROUTING -o $EXTERNAL_IF -j MASQUERADE
 
 

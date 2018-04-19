@@ -34,7 +34,7 @@ echo "Setting NAT"
 iptables -t nat -A POSTROUTING -o $EXTERNAL_IF -j MASQUERADE
 
 export EXT_IP=$(ip -o -4 -a addr show $EXTERNAL_IF|tr -s ' '| cut -d ' ' -f 4|head -n 1|cut -d '/' -f 1)
-envsubst ‘$EXT_IP’ < subjalt_template.cnf > subjalt.cnf
+envsubst '$EXT_IP' < subjalt_template.cnf > subjalt.cnf
 
 echo "Making dir for certs"
 mkdir -p /etc/ssl/certs

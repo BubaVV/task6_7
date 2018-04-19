@@ -33,6 +33,9 @@ sysctl net.ipv4.ip_forward=1
 echo "Setting NAT"
 iptables -t nat -A POSTROUTING -o $EXTERNAL_IF -j MASQUERADE
 
+export EXT_IP=$(ip -o -4 -a addr show $EXTERNAL_IF|tr -s ' '| cut -d ' ' -f 4|head -n 1|cut -d '/' -f 1)
+envsubst ‘$EXT_IP’ < subjalt_template.cnf > subjalt.cnf
+
 echo "Making dir for certs"
 mkdir -p /etc/ssl/certs
 
@@ -44,11 +47,19 @@ else
 echo "Root cert present"
 fi
 
-openssl req -x509 -new -nodes -key /etc/ssl/certs/root-ca.key -sha256 -days 365 -out /etc/ssl/certs/root-ca.crt -subj "/C=UA/ST=Kharkov/L=Kharkov/O=Mirantis/OU=dev_ops/CN=vm1/"
+openssl req -x509 -new -nodes -key /etc/ssl/certs/root-ca.key -sha256 -days 365\
+       -out /etc/ssl/certs/root-ca.crt\
+       -subj "/C=UA/ST=Kharkov/L=Kharkov/O=Mirantis/OU=dev_ops/CN=vm1/"\
+       -extensions v3_req\
+       -config <(cat /etc/ssl/openssl.cnf; cat subjalt.cnf)
+
+echo "Generating web.key"
 openssl genrsa -out /etc/ssl/certs/web.key 2048
+echo "Generating web.csr"
 openssl req -new\
        -out /etc/ssl/certs/web.csr\
-       -key /etc/ssl/certs/web.key -subj "/C=UA/ST=Kharkov/L=Kharkov/O=Mirantis/OU=dev_ops/CN=vm1/"
+       -key /etc/ssl/certs/web.key\
+       -subj "/C=UA/ST=Kharkov/L=Kharkov/O=Mirantis/OU=dev_ops/CN=vm1/"
 openssl x509 -req\
        -in /etc/ssl/certs/web.csr\
        -CA /etc/ssl/certs/root-ca.crt\
@@ -63,6 +74,7 @@ if [ $IS_NGINX_INSTALLED = 0 ]
 then
     echo "NGINX is absent, installing"
     echo "Updating apt"
+
     apt update
     echo "Installing NGINX"
     apt install nginx -y -q
@@ -72,8 +84,6 @@ then
 
 else
      echo "NGINX installed earlier"
+     systemctl restart nginx
 fi
-
-
-
 
